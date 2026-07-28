@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RecGenAI – Recipe Q&A RAG Agent</title>
+  <link rel="stylesheet" href="src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- ── Navigation ── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="brand-icon">🍳</span>
+      <span class="brand-name">RecGenAI</span>
+      <span class="brand-tag">RAG Agent</span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-tab="chat">Chat</button>
+      <button class="nav-btn" data-tab="upload">Upload Docs</button>
+      <button class="nav-btn" data-tab="explore">Explore</button>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">Connecting…</span>
+    </div>
+  </nav>
+
+  <!-- ── Main Layout ── -->
+  <main class="app-layout">
+
+    <!-- ════ LEFT SIDEBAR ════ -->
+    <aside class="sidebar">
+      <section class="sidebar-section">
+        <h3 class="sidebar-title">Dietary Preferences</h3>
+        <div class="chip-group" id="dietChips">
+          <label class="chip"><input type="checkbox" value="vegan" /> Vegan</label>
+          <label class="chip"><input type="checkbox" value="vegetarian" /> Vegetarian</label>
+          <label class="chip"><input type="checkbox" value="gluten-free" /> Gluten-Free</label>
+          <label class="chip"><input type="checkbox" value="dairy-free" /> Dairy-Free</label>
+          <label class="chip"><input type="checkbox" value="keto" /> Keto</label>
+          <label class="chip"><input type="checkbox" value="paleo" /> Paleo</label>
+          <label class="chip"><input type="checkbox" value="nut-free" /> Nut-Free</label>
+          <label class="chip"><input type="checkbox" value="low-carb" /> Low-Carb</label>
+        </div>
+      </section>
+
+      <section class="sidebar-section">
+        <h3 class="sidebar-title">Cuisine Type</h3>
+        <select class="sidebar-select" id="cuisineSelect">
+          <option value="">Any Cuisine</option>
+          <option value="Italian">Italian</option>
+          <option value="Indian">Indian</option>
+          <option value="Mexican">Mexican</option>
+          <option value="Chinese">Chinese</option>
+          <option value="Japanese">Japanese</option>
+          <option value="Mediterranean">Mediterranean</option>
+          <option value="American">American</option>
+          <option value="French">French</option>
+          <option value="Thai">Thai</option>
+          <option value="Middle Eastern">Middle Eastern</option>
+        </select>
+      </section>
+
+      <section class="sidebar-section">
+        <h3 class="sidebar-title">Cooking Time</h3>
+        <div class="time-slider-wrap">
+          <input type="range" id="cookTimeSlider" min="5" max="180" value="60" class="slider" />
+          <div class="slider-labels">
+            <span>5 min</span>
+            <span id="cookTimeValue">60 min</span>
+            <span>3 hrs</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="sidebar-section">
+        <h3 class="sidebar-title">Available Ingredients</h3>
+        <div class="tag-input-wrap">
+          <input type="text" id="ingredientInput" class="tag-input" placeholder="Add ingredient + Enter" />
+          <div class="tag-list" id="ingredientTags"></div>
+        </div>
+      </section>
+
+      <section class="sidebar-section">
+        <h3 class="sidebar-title">Servings</h3>
+        <div class="number-control">
+          <button class="num-btn" id="servingMinus">−</button>
+          <span id="servingCount">2</span>
+          <button class="num-btn" id="servingPlus">+</button>
+        </div>
+      </section>
+
+      <button class="apply-btn" id="applyPrefsBtn">Apply Preferences</button>
+    </aside>
+
+    <!-- ════ CENTER – TABS ════ -->
+    <div class="center-panel">
+
+      <!-- ── Chat Tab ── -->
+      <div class="tab-panel active" id="tab-chat">
+        <div class="chat-header">
+          <div class="chat-header-info">
+            <h2>Recipe Assistant</h2>
+            <p>Powered by IBM Watsonx AI + RAG</p>
+          </div>
+          <button class="clear-btn" id="clearChatBtn">Clear Chat</button>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="message bot-message">
+            <div class="msg-avatar bot-avatar">🤖</div>
+            <div class="msg-content">
+              <p>Hi! I'm your AI-powered recipe assistant. I can help you:</p>
+              <ul>
+                <li>Find and adapt recipes from your uploaded documents</li>
+                <li>Suggest substitutions for missing ingredients</li>
+                <li>Create personalized recipes based on your dietary needs</li>
+                <li>Generate shopping lists and nutritional info</li>
+              </ul>
+              <p>Ask me anything like <em>"How do I make a vegan chocolate cake?"</em> or <em>"What can I cook with chicken and spinach?"</em></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-input-bar">
+          <div class="suggestion-chips" id="suggestionChips">
+            <button class="sugg-chip">🎂 Sugar-free chocolate cake</button>
+            <button class="sugg-chip">🥗 Quick 15-min salads</button>
+            <button class="sugg-chip">🍝 Gluten-free pasta ideas</button>
+            <button class="sugg-chip">🛒 Generate shopping list</button>
+          </div>
+          <div class="input-row">
+            <textarea id="chatInput" rows="1" placeholder="Ask about any recipe…"></textarea>
+            <button class="send-btn" id="sendBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Upload Tab ── -->
+      <div class="tab-panel" id="tab-upload">
+        <div class="upload-header">
+          <h2>Upload Recipe Documents</h2>
+          <p>Add cookbooks, PDFs, recipe blogs, or plain text notes to your knowledge base</p>
+        </div>
+
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-icon">📄</div>
+          <p class="drop-title">Drop files here or click to browse</p>
+          <p class="drop-hint">Supports PDF, TXT, DOCX, MD — up to 20 MB each</p>
+          <input type="file" id="fileInput" multiple accept=".pdf,.txt,.docx,.md" hidden />
+          <button class="upload-browse-btn" id="browseBtnTrigger">Browse Files</button>
+        </div>
+
+        <div class="url-ingest">
+          <h3>Or ingest from URL</h3>
+          <div class="url-row">
+            <input type="url" id="urlInput" placeholder="https://example.com/recipe-blog" class="url-field" />
+            <button class="url-btn" id="ingestUrlBtn">Ingest</button>
+          </div>
+        </div>
+
+        <div class="upload-progress-area" id="uploadProgressArea"></div>
+
+        <div class="indexed-docs" id="indexedDocsSection">
+          <h3>Indexed Documents</h3>
+          <div class="doc-list" id="docList">
+            <p class="empty-hint">No documents indexed yet. Upload some files to get started.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Explore Tab ── -->
+      <div class="tab-panel" id="tab-explore">
+        <div class="explore-header">
+          <h2>Explore Knowledge Base</h2>
+          <input type="search" id="exploreSearch" placeholder="Search indexed recipes…" class="explore-search" />
+        </div>
+        <div class="recipe-grid" id="recipeGrid">
+          <p class="empty-hint">Index some documents first to explore your recipe knowledge base.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ RIGHT PANEL – RECIPE CARD ════ -->
+    <aside class="recipe-panel" id="recipePanel">
+      <div class="recipe-panel-header">
+        <h3>Recipe Output</h3>
+        <div class="panel-actions">
+          <button class="panel-action-btn" id="printBtn" title="Print">🖨️</button>
+          <button class="panel-action-btn" id="copyBtn" title="Copy">📋</button>
+          <button class="panel-action-btn" id="downloadBtn" title="Download">⬇️</button>
+        </div>
+      </div>
+
+      <div class="recipe-output" id="recipeOutput">
+        <div class="empty-recipe-state">
+          <div class="empty-recipe-icon">🍽️</div>
+          <p>Ask a question in the chat to see a detailed recipe here</p>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ── Toast Notifications ── -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ── Loading Overlay ── -->
+  <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p id="loadingText">Processing…</p>
+    </div>
+  </div>
+
+  <script src="src/app.js"></script>
+</body>
+</html>
